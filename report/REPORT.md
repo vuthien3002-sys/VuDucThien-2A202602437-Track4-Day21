@@ -1,22 +1,16 @@
-# Báo cáo Day 6: [ĐIỀN tên đề tài ngắn]
+# Báo cáo Day 6: Calibration lệch xoay và lệch dịch ảnh hưởng thế nào tới projection LiDAR → camera
 
-> Thay **mọi** ô có chữ ĐIỀN nằm trong ngoặc vuông bằng nội dung của bạn, xoá luôn cả dấu ngoặc vuông. Lệnh `python tools/check_submission.py` sẽ báo FAIL nếu còn sót bất kỳ chỗ nào.
-
-- **Họ tên:** [ĐIỀN]
-- **MSSV:** [ĐIỀN] (phải trùng với MSSV trong tên repo `<HoVaTen>-<MSSV>-Track4-Day21`)
-- **Lớp:** [ĐIỀN]
-- **Link repo:** [ĐIỀN]
-- **Topic:** [ĐIỀN một chữ cái A/B/C/D/E/F] — [ĐIỀN tên topic]
-- **Dataset:** [ĐIỀN một hoặc nhiều trong: data/synthetic, data/kitti_mini, data/nuscenes_mini_subset, log riêng]
-- **Các frame đã dùng:** [ĐIỀN danh sách frame id, ví dụ 000011, 000049 hoặc scene-0103_010]
-
-> Hãy viết ngắn: mỗi mục từ 3 đến 8 dòng, ưu tiên số liệu và hình ảnh.
+- **Họ tên:** Vũ Đức Thiện
+- **MSSV:** 2A202602437
+- **Lớp:** VinUni AI20K K4 · Track 4 (Computer Vision and Robotics)
+- **Link repo:** https://github.com/vuthien3002-sys/VuDucThien-2A202602437-Track4-Day21
+- **Topic:** A — LiDAR-camera projection QA
+- **Dataset:** data/kitti_mini (chính), data/nuscenes_mini_subset (so sánh + lỗi thời gian), data/synthetic (debug)
+- **Các frame đã dùng:** KITTI 000008, 000011, 000049 (thí nghiệm chính); 000004, 000019 (demo xa/gần); cả 20 frame kitti_mini cho bảng theo khoảng cách. nuScenes scene-0103_000…039 và scene-1094_000…039 (mỗi frame thứ 5)
 
 ## 1. Claim
 
-Một câu khẳng định kỹ thuật có thể kiểm chứng. Ví dụ: *"Lệch yaw 1° làm 12% điểm LiDAR rơi ra khỏi vật thể ở 30 m, phát hiện được bằng edge-alignment score với ngưỡng X."*
-
-[ĐIỀN]
+**Claim nháp (CP1):** Lệch yaw 1° làm tỉ lệ điểm LiDAR của người đi bộ rơi đúng vào 2D box giảm hơn 20 điểm phần trăm, trong khi với xe con chỉ giảm dưới 5 điểm phần trăm. Ngược lại, lệch dịch 10 cm chủ yếu làm giảm tỉ lệ này ở vật gần (< 15 m), vật xa hơn 30 m gần như không đổi.
 
 ## 2. Evidence
 
