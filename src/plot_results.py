@@ -67,7 +67,7 @@ def plot_claim(res: Path, fig_dir: Path) -> None:
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(12, 4.3))
 
     # (1) yaw theo class: vật hẹp (người) so với vật rộng (xe)
-    for color, (grp, name) in zip((BLUE, ORANGE), (("vehicle", "Xe (Car/Van)"), ("pedestrian", "Người đi bộ"))):
+    for color, (grp, name) in zip((BLUE, ORANGE), (("vehicle", "Xe (Car/Van/Truck)"), ("pedestrian", "Người đi bộ"))):
         g = pick(s, "yaw", grp)
         n = int(g["n_objects"].iloc[0])
         a1.plot(g["level"], 100 * g["hit_ratio_fixed"], marker="o", color=color, label=f"{name}, {n} vật")

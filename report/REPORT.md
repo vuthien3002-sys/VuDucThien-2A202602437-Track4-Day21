@@ -10,7 +10,9 @@
 
 ## 1. Claim
 
-**Claim nháp (CP1):** Lệch yaw 1° làm tỉ lệ điểm LiDAR của người đi bộ rơi đúng vào 2D box giảm hơn 20 điểm phần trăm, trong khi với xe con chỉ giảm dưới 5 điểm phần trăm. Ngược lại, lệch dịch 10 cm chủ yếu làm giảm tỉ lệ này ở vật gần (< 15 m), vật xa hơn 30 m gần như không đổi.
+**Claim cuối cùng:** Lệch yaw 1° làm tỉ lệ điểm LiDAR của **người đi bộ** rơi đúng vào 2D box giảm **36 điểm phần trăm** (95.7 → 59.5 %), trong khi **xe** chỉ giảm **4.5 điểm** (99.9 → 95.4 %) — KITTI 20 frame, lặp lại trên nuScenes (99.9 → 61.5 % và 99.9 → 95.2 %). Lệch **xoay** hại vật **xa** (yaw 1°: 95.8 % ở < 15 m → 70.0 % ở > 30 m), còn lệch **dịch** 10 cm thì **không** phụ thuộc khoảng cách (97.8 / 98.4 / 98.9 %).
+
+**Claim nháp (CP1)** và kết luận: *"Lệch yaw 1° làm tỉ lệ của người đi bộ giảm hơn 20 điểm %, xe con dưới 5 điểm %; ngược lại lệch dịch 10 cm chủ yếu hại vật gần (< 15 m), vật > 30 m gần như không đổi."* → Vế 1 **đúng** (36 và 4.5 điểm). Vế 2 **bị bác bỏ**: dịch làm điểm trượt `f·d/z` pixel (lớn ở vật gần, đúng như lý thuyết), nhưng vật gần cũng to hơn đúng tỉ lệ `f·W/z`, nên tỉ lệ trượt = `d/W` không phụ thuộc khoảng cách (người đi bộ: 89 / 84 / 85 %).
 
 ## 2. Evidence
 
@@ -18,13 +20,13 @@
 
 ![demo](../results/figures/demo_overlay_3_distances.png)
 
-**Metric.** `hit_ratio` = (số điểm trong 3D box GT, chọn bằng calib **gốc**) rơi vào 2D box của vật khi chiếu bằng calib **đã lệch** ÷ (số điểm đó nằm trong ảnh theo calib gốc). Mỗi lần chỉ lệch **1 trục** (`perturb_extrinsic`, quay/dịch trong velodyne frame), giữ nguyên frame, class (Car, Van, Pedestrian, Cyclist), range. Không có phép ngẫu nhiên → chạy lại 2 lần ra CSV giống từng byte (đã kiểm `filecmp`).
+**Metric.** `hit_ratio` = (số điểm trong 3D box GT, chọn bằng calib **gốc**) rơi vào 2D box của vật khi chiếu bằng calib **đã lệch** ÷ (số điểm đó nằm trong ảnh theo calib gốc). Mỗi lần chỉ lệch **1 trục** (`perturb_extrinsic`, quay/dịch trong velodyne frame), giữ nguyên frame, class (Car, Van, Truck, Pedestrian, Cyclist), range. Không có phép ngẫu nhiên → chạy lại 2 lần ra CSV giống từng byte (đã kiểm `filecmp`).
 
 **Kiểm tra cài đặt:** chạy script mẫu `src/exp_yaw_sweep.py` trên 000008 / 000011 / 000049 ra **đúng 15/15 số** của bảng kỳ vọng (vd 000011: 99.45 → 91.88 → 77.44 → 45.44 → 21.23 %) → `results/yaw_perturb_sweep.csv`, [yaw_sweep.png](../results/figures/yaw_sweep.png).
 
 **Kết quả chính (KITTI, 20 frame, 113 vật)** — `results/calib_sweep_summary_kitti_mini.csv`:
 
-| Lệch yaw | Xe (Car/Van, 89 vật) | Người đi bộ (18 vật) | Tất cả |
+| Lệch yaw | Xe (Car/Van/Truck, 89 vật) | Người đi bộ (18 vật) | Tất cả |
 |---|---|---|---|
 | 0° | 99.9 % | 95.7 % | 99.6 % |
 | 0.5° | 98.4 % | 81.6 % | 97.2 % |
@@ -70,7 +72,7 @@
 
 Vì sao giống/khác: (1) yaw 1° gần như **trùng nhau** dù nuScenes trượt 1253·tan1° ≈ 21.9 px (KITTI 12.6 px): ảnh nuScenes phóng vật lớn theo đúng tỉ lệ f, nên f **bị triệt tiêu** (`z·tanθ/W`). (2) Mức sàn nuScenes ≈ 100 % và người đi bộ chịu dịch tốt hơn (97.4 % so với 87.2 %) vì 2D box nuScenes **không do người vẽ** mà là bao của 8 góc 3D box chiếu lên ảnh → rộng hơn dáng người, có lề. (3) Trục LiDAR nuScenes là x-phải, y-trước nên `pitch` trong code của nuScenes thực chất là roll của xe; phải ghép đúng trục vật lý mới so sánh được. (4) Đêm/ngày không làm metric kém đi (LiDAR là cảm biến chủ động); khác biệt 48.6 / 68.6 % đến từ khoảng cách: người đi bộ ban đêm gần hơn (khoảng cách trung bình theo số điểm 19.4 m so với 25.5 m ban ngày). (5) nuScenes chỉ 4 điểm/vật → tỉ lệ theo từng vật rất nhiễu, phải gộp nhiều vật.
 
-**[B2] Stress test suy giảm dữ liệu** (2 loại × 3 mức, seed = 0) — `results/degradation_summary.csv`, [degradation_sweep.png](../results/figures/degradation_sweep.png): giữ 30 % điểm (`random_dropout`) hay thêm nhiễu σ = 10 cm (`gaussian_noise`), `hit_ratio` gộp vẫn 99.6 / 99.4 % ở 0° và 93.1 / 92.8 % ở yaw 1°; tỉ lệ frame bị cờ không đổi (5 % ở 0°, 70 % ở 1°). Metric là **tỉ lệ** nên bỏ điểm không làm lệch nó; nhiễu chỉ làm mẫu số giảm 40 105 → 35 642 điểm. Kết luận: bài kiểm tra calibration bền với mưa/bụi/nhiễu, giới hạn thật nằm ở **nội dung frame** (có vật hẹp/xa hay không).
+**[B2] Stress test suy giảm dữ liệu** (2 loại × 3 mức, seed = 0) — `results/degradation_summary.csv`, [degradation_sweep.png](../results/figures/degradation_sweep.png): giữ 30 % điểm (`random_dropout`) hay thêm nhiễu σ = 10 cm (`gaussian_noise`), `hit_ratio` gộp vẫn 99.6 / 99.4 % ở 0° và 93.1 / 92.8 % ở yaw 1°; tỉ lệ frame bị cờ gần như không đổi (5 % ở 0°, 65–70 % ở 1° ở mọi mức). Metric là **tỉ lệ** nên bỏ điểm không làm lệch nó; nhiễu chỉ làm mẫu số giảm 40 105 → 35 642 điểm. Kết luận: bài kiểm tra calibration bền với mưa/bụi/nhiễu, giới hạn thật nằm ở **nội dung frame** (có vật hẹp/xa hay không).
 
 **[B3] Latency** (CPU Intel i7-8850H, 12 luồng, 15.8 GB RAM, không GPU; 50 lần đo, bỏ lần đầu) — `results/latency_qa.csv`, `results/latency_summary.csv`, `results/latency_hardware.txt`:
 
@@ -79,7 +81,18 @@ Vì sao giống/khác: (1) yaw 1° gần như **trùng nhau** dù nuScenes trư�
 | KITTI 000011 | 108 004 | 12.3 / 18.6 ms | 54.4 / 61.7 ms |
 | nuScenes scene-0103_010 | 34 720 | 2.6 / 3.0 ms | 21.4 / 24.7 ms |
 
-**[B4] Tool dùng lại được:** `python -m src.exp_calib_sweep --help` — quét 6 trục (`--axes yaw pitch roll tx ty tz`), mức lệch (`--rot-levels`, `--trans-levels`), dataset bất kỳ (`--data-root`), tắt bù chuyển động (`--ignore-ego-motion`); mặc định chạy được ngay. `src/exp_degradation.py`, `src/bench_latency.py`, `src/demo_overlays.py` cũng có `--help`.
+**[B1] So sánh 2 metric trên cùng dữ liệu:** `hit_ratio` (cần label 3D + 2D) so với `edge_score` (không cần label: điểm LiDAR ở mép độ sâu có trùng cạnh Canny của ảnh không, theo ý tưởng Levinson & Thrun 2013) — `src/exp_edge_alignment.py`, `results/edge_vs_hit_summary.csv`, [edge_vs_hit.png](../results/figures/edge_vs_hit.png), [edge_alignment_demo.png](../results/figures/edge_alignment_demo.png). AUROC = xác suất một frame calib đúng có điểm cao hơn một frame bị lệch (1 = tách hoàn hảo, 0.5 = đoán mò):
+
+| Phép thử | AUROC hit_ratio | AUROC edge_score | Số frame metric giảm (hit / edge) |
+|---|---|---|---|
+| KITTI yaw 0.25° vs 0° | 0.82 | 0.55 | 18 / 15 trên 20 |
+| KITTI yaw 0.5° vs 0° | **0.92** | 0.62 | 19 / 18 trên 20 |
+| KITTI yaw 1° vs 0° | **0.98** | 0.72 | 20 / 19 trên 20 |
+| nuScenes lỗi Time (46 frame điểm dời > 8 px) | 0.47 | 0.53 | 4 / **28** trên 46 |
+
+Ưu/nhược: `hit_ratio` tách tốt nhất với một ngưỡng cố định vì mức sàn ổn định (92–100 % ở 0°), nhưng cần label và **mù** với lỗi nằm chung chuỗi biến đổi với label (lỗi Time trên nuScenes, Fail 02). `edge_score` không cần label và có tín hiệu với lỗi Time (giảm ở 28/46 frame, trung bình 0.249 → 0.225), nhưng phụ thuộc cảnh: ở 0° đã trải từ 0.29 (frame 000061) tới 0.78 nên ngưỡng cố định kém (AUROC 0.62 ở 0.5°); chỉ dùng được kiểu **tương đối** (so với chính frame đó, panel b). Failure riêng của `edge_score`: nuScenes 32 beam chỉ có ~15–19 điểm mép độ sâu mỗi frame (KITTI ~528) → theo từng frame gần như đoán mò, phải gộp nhiều frame.
+
+**[B4] Tool dùng lại được:** `python -m src.exp_calib_sweep --help` — quét 6 trục (`--axes yaw pitch roll tx ty tz`), mức lệch (`--rot-levels`, `--trans-levels`), dataset bất kỳ (`--data-root`), tắt bù chuyển động (`--ignore-ego-motion`); mặc định chạy được ngay. `src/exp_degradation.py`, `src/exp_edge_alignment.py`, `src/bench_latency.py`, `src/demo_overlays.py`, `src/make_failures.py`, `src/plot_results.py` cũng có `--help` và chạy được với tham số mặc định.
 
 ## 3. Failure case
 
@@ -115,9 +128,11 @@ Vì sao giống/khác: (1) yaw 1° gần như **trùng nhau** dù nuScenes trư�
 
 ## 4. Khuyến nghị nếu triển khai thật
 
-Use-case cụ thể (ADAS / robot / drone), trade-off và bước tiếp theo.
-
-[ĐIỀN]
+- **Use-case:** xe tự hành / robotaxi đô thị ≤ 50 km/h có LiDAR mái + camera trước (giống nuScenes), cần biết giá đỡ cảm biến có bị xoay sau va chạm nhẹ, rửa xe, rung hay giãn nở nhiệt không — trước khi fusion LiDAR-camera đặt nhầm điểm LiDAR của người đi bộ lên nền.
+- **Cách kiểm tra:** thay label GT bằng output của detector (3D box từ LiDAR, 2D box từ detector **camera** để tham chiếu độc lập) và tính `hit_ratio` (mẫu số cố định) **chỉ trên vật hẹp/xa** (người, cột, xe đạp > 20 m) — đây là nhóm nhạy nhất (yaw 1°: người 34 m còn 7.5 %, xe gần vẫn 95 %). Thêm `edge_score` làm kiểm tra không cần detector, dùng kiểu tương đối (calib hiện tại so với ±0.5°).
+- **Đánh đổi:** một lần kiểm tra tốn 54 ms CPU (KITTI 108 k điểm) / 21 ms (nuScenes) trên i7-8850H. Chạy mỗi frame ở 10 Hz ≈ 54 % một nhân; chạy 1 Hz hoặc khi xe dừng đèn đỏ chỉ ≈ 5 % nhưng phát hiện chậm hơn hàng chục giây — chấp nhận được vì drift calibration là lỗi chậm, không tức thời. An toàn: ngưỡng 95 % theo từng frame báo nhầm 1/20 frame, ngưỡng 90 % không báo nhầm nhưng chỉ bắt 10/20 frame ở yaw 1° → **không** cảnh báo theo 1 frame mà theo trung vị một cửa sổ nhiều lần kiểm tra, và bỏ qua lần kiểm tra không có vật hẹp/xa (6/20 frame KITTI bị xe gần chi phối không thấy được yaw 1°). Bài kiểm tra bền với suy giảm dữ liệu (giữ 30 % điểm hay nhiễu 10 cm vẫn cho cùng kết quả, B2), nên không cần tắt khi mưa.
+- **Chỉ số cần ghi log:** `hit_ratio` theo class × khoảng cách; `object_points` (mẫu số) và số vật hẹp/xa trong mỗi lần kiểm tra (biết lần đó có đáng tin không); `dt = t_camera − t_lidar`, tốc độ và tốc độ quay của xe (lỗi Time: rẽ 0.93° trong 35.6 ms đã lệch 21 px); `inside_image` chỉ để phát hiện lỗi I/O; sự kiện va chạm từ IMU, nhiệt độ giá đỡ. Đề xuất: cảnh báo "cần hiệu chỉnh lại" khi trung vị `hit_ratio` của người/vật xa < 90 % liên tục 5 phút; khi đó hạ trọng số fusion camera cho vật > 30 m.
+- **Bước tiếp theo:** tự hiệu chỉnh online bằng cách tìm yaw/pitch làm `edge_score` lớn nhất; kiểm tra lại trên nhiều scene mưa/đêm hơn và với detector thật thay cho label.
 
 ## 5. Cách chạy lại
 
@@ -149,12 +164,20 @@ python -m src.make_failures          # -> fail_01/02/03_*.png + time_sync_nusc.c
 python -m src.exp_calib_sweep --data-root data/nuscenes_mini_subset --axes yaw --ignore-ego-motion --tag nusc_noego
 python -m starter.projection --data-root data/nuscenes_mini_subset --frame scene-0103_010 --ignore-ego-motion   # 3120 -> 2911
 python -m starter.projection --data-root data/kitti_mini --frame 000011 --yaw-deg 2                             # nhìn bằng mắt
+
+# 4. [B1] hit_ratio vs edge_score (chạy SAU make_failures vì đọc time_sync_nusc.csv)
+python -m src.exp_edge_alignment     # -> edge_vs_hit_summary.csv, edge_vs_hit.png, edge_alignment_demo.png (~20 s)
+
+# 5. Kiểm tra hình thức trước khi nộp
+python tools/check_submission.py
 ```
+
+Mọi script đều chạy từ **gốc repo** bằng `python -m src.<tên>` (không chạy `python src/<tên>.py`), có `--help`. Tất cả số liệu tất định (không có phép ngẫu nhiên, riêng B2 dùng `seed = 0`) trừ số ms của latency.
 
 ## 6. Khai báo sử dụng AI
 
-Ghi rõ đã dùng công cụ AI nào, dùng vào việc gì, và bạn đã tự kiểm chứng kết quả đó bằng cách nào. Nếu không dùng AI, ghi "Không sử dụng". Xem quy định ở `RULES.md` mục 2.
-
-| Công cụ | Dùng cho việc gì | Bạn đã kiểm chứng thế nào |
+| Công cụ | Dùng cho việc gì | Đã kiểm chứng thế nào |
 |---|---|---|
-| [ĐIỀN] | | |
+| Claude Code (model Claude Opus 5.5, Anthropic) | Đọc đề + hướng dẫn lab; viết 2 hàm TODO trong `starter/projection.py`; viết toàn bộ code trong `src/`; chạy thí nghiệm, vẽ biểu đồ, tạo ảnh failure; soạn nháp REPORT. Các commit có dòng `Co-Authored-By: Claude` | Self-test `src.test_projection` pass (`z_cam` = 9.73, pixel (614, 175)); 3 overlay in đúng 3910 / 19946 / 3120; script mẫu ra đúng 15/15 số kỳ vọng; chạy lại thí nghiệm → CSV giống từng byte (`filecmp`); xem bằng mắt từng ảnh/biểu đồ; đối chiếu mọi con số trong REPORT với CSV trong `results/`; công thức `f·tanθ`, `f·d/z` kiểm lại bằng tay (721.5·tan1° = 12.6 px) |
+| Codelab Day 6 (script mẫu) | `src/test_projection.py` (Phần 04) và `src/exp_yaw_sweep.py` (Phần 05) giữ nguyên làm điểm xuất phát. Mở rộng thành `src/exp_calib_sweep.py`: 6 trục lệch, tính theo từng vật, chia class/khoảng cách, mẫu số cố định, chạy cả nuScenes; thêm ngưỡng phát hiện drift, B1, B2, B3, phân tích lỗi Time | Lọc bản mở rộng về đúng 4 class và cách tính mẫu số của script mẫu (`hit_ratio_template`) → ra lại đúng 15/15 số và đúng mẫu số `object_points` của script mẫu |
+| Bảng màu biểu đồ (dataviz reference palette) | Màu categorical đã kiểm định cho người mù màu trong `src/plot_results.py` | Xem lại biểu đồ, nhãn không chồng nhau |
