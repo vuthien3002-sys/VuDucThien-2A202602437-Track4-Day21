@@ -146,7 +146,7 @@ python -m starter.projection --data-root data/kitti_mini --frame 000011
 - Tìm ra failure case **không bị trừ điểm**. Ngược lại, phân tích failure tốt chiếm 25/100 điểm.
 
 **Tự kiểm tra**
-- [ ] Một bạn khác trong lớp nhìn ảnh failure có hiểu ngay "sai ở đâu" mà không cần bạn giải thích không? *(Bạn tự nhờ một bạn cùng lớp xem 3 ảnh `fail_0*.png`.)*
+- [X] Một bạn khác trong lớp nhìn ảnh failure có hiểu ngay "sai ở đâu" mà không cần bạn giải thích không? *(Bạn tự nhờ một bạn cùng lớp xem 3 ảnh `fail_0*.png`.)*
 - [x] Bạn có đề xuất được cách phát hiện, hoặc cách khắc phục, lỗi này khi chạy trên xe hoặc robot thật không?
 - [x] Đã commit `CP4: failure analysis`.
 
@@ -186,5 +186,5 @@ python tools/check_submission.py
 - Muốn đưa phương pháp này vào xe hoặc robot thật, bạn sẽ ghi log thêm chỉ số gì?
 
 **Tự kiểm tra**
-- [ ] Đã tập nói thử một lần, gọn trong 3 phút. *(Bạn tự làm.)*
-- [ ] Giải thích được mọi con số trong bảng kết quả của mình. *(Bạn tự làm: đọc mục 2–3 của REPORT.)*
+- [X] Đã tập nói thử một lần, gọn trong 3 phút. *(Bạn tự làm.)*
+- [X] Giải thích được mọi con số trong bảng kết quả của mình. *(Bạn tự làm: đọc mục 2–3 của REPORT.)*
