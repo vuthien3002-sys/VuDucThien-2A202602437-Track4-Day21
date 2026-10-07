@@ -92,7 +92,7 @@ Vì sao giống/khác: (1) yaw 1° gần như **trùng nhau** dù nuScenes trư�
 
 Ưu/nhược: `hit_ratio` tách tốt nhất với một ngưỡng cố định vì mức sàn ổn định (92–100 % ở 0°), nhưng cần label và **mù** với lỗi nằm chung chuỗi biến đổi với label (lỗi Time trên nuScenes, Fail 02). `edge_score` không cần label và có tín hiệu với lỗi Time (giảm ở 28/46 frame, trung bình 0.249 → 0.225), nhưng phụ thuộc cảnh: ở 0° đã trải từ 0.29 (frame 000061) tới 0.78 nên ngưỡng cố định kém (AUROC 0.62 ở 0.5°); chỉ dùng được kiểu **tương đối** (so với chính frame đó, panel b). Failure riêng của `edge_score`: nuScenes 32 beam chỉ có ~15–19 điểm mép độ sâu mỗi frame (KITTI ~528) → theo từng frame gần như đoán mò, phải gộp nhiều frame.
 
-**[B4] Tool dùng lại được:** `python -m src.exp_calib_sweep --help` — quét 6 trục (`--axes yaw pitch roll tx ty tz`), mức lệch (`--rot-levels`, `--trans-levels`), dataset bất kỳ (`--data-root`), tắt bù chuyển động (`--ignore-ego-motion`); mặc định chạy được ngay. `src/exp_degradation.py`, `src/exp_edge_alignment.py`, `src/bench_latency.py`, `src/demo_overlays.py`, `src/make_failures.py`, `src/plot_results.py` cũng có `--help` và chạy được với tham số mặc định.
+**[B4] Tool dùng lại được:** `python -m src.exp_calib_sweep --help` — quét 6 trục (`--axes yaw pitch roll tx ty tz`), mức lệch (`--rot-levels`, `--trans-levels`), dataset bất kỳ (`--data-root`), tắt bù chuyển động (`--ignore-ego-motion`); mặc định chạy được ngay. Thêm UI tương tác `python -m src.app` (thanh trượt 6 trục, đổi frame/dataset, bật/tắt bù chuyển động, đường hit_ratio theo yaw, cảnh báo theo ngưỡng 95 %) — [ui_snapshot.png](../results/figures/ui_snapshot.png). `src/exp_degradation.py`, `src/exp_edge_alignment.py`, `src/bench_latency.py`, `src/demo_overlays.py`, `src/make_failures.py`, `src/plot_results.py` cũng có `--help` và chạy được với tham số mặc định.
 
 ## 3. Failure case
 
@@ -173,6 +173,10 @@ python -m src.exp_edge_alignment     # -> edge_vs_hit_summary.csv, edge_vs_hit.p
 
 # 5. Kiểm tra hình thức trước khi nộp
 python tools/check_submission.py
+
+# 6. (Tuỳ chọn) UI tương tác: kéo thanh trượt yaw/pitch/roll/tx/ty/tz, xem hit_ratio đổi ngay; ←/→ đổi frame
+python -m src.app
+python -m src.app --frame 000011 --yaw 1 --mode hit --snapshot results/figures/ui_snapshot.png   # chụp không mở cửa sổ
 ```
 
 Mọi script đều chạy từ **gốc repo** bằng `python -m src.<tên>` (không chạy `python src/<tên>.py`), có `--help`. Tất cả số liệu tất định (không có phép ngẫu nhiên, riêng B2 dùng `seed = 0`) trừ số ms của latency.
