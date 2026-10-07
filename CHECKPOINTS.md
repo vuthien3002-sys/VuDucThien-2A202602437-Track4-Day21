@@ -31,8 +31,8 @@ Bài lab làm **cá nhân**. Mỗi checkpoint ghi rõ 4 thứ: **cần làm gì*
 ```bash
 python -m starter.data_health --data-root data/synthetic
 ```
-- [ ] Lệnh in ra 5 dòng, từ `000000` đến `000004`, và tạo file `results/data_health.csv`.
-- [ ] (Chỉ topic B/C có model) Demo của thư viện detector chạy được trên 1 frame và lưu được ảnh kết quả.
+- [x] Lệnh in ra 5 dòng, từ `000000` đến `000004`, và tạo file `results/data_health.csv`.
+- [ ] (Chỉ topic B/C có model) Demo của thư viện detector chạy được trên 1 frame và lưu được ảnh kết quả. *(Không áp dụng: bài làm topic A, không dùng model.)*
 
 ---
 
@@ -53,9 +53,9 @@ python -m starter.data_health --data-root data/synthetic
 - **Kiểm tra dữ liệu đi trước model.** Mở `results/data_health.csv` từ CP0 và xem có cột nào có giá trị bất thường so với các frame còn lại không.
 
 **Tự kiểm tra**
-- [ ] Claim có đủ 3 thành phần: đại lượng đo được, điều kiện cụ thể, và ngưỡng hoặc phép so sánh.
-- [ ] Bạn nói được trong một câu: mình sẽ đo đại lượng gì, trên frame nào, với các mức thay đổi nào.
-- [ ] Đã commit `CP1: choose topic X, draft claim` (thay X bằng chữ cái topic).
+- [x] Claim có đủ 3 thành phần: đại lượng đo được, điều kiện cụ thể, và ngưỡng hoặc phép so sánh.
+- [x] Bạn nói được trong một câu: mình sẽ đo đại lượng gì, trên frame nào, với các mức thay đổi nào.
+- [x] Đã commit `CP1: choose topic X, draft claim` (thay X bằng chữ cái topic).
 
 ---
 
@@ -93,10 +93,10 @@ python -m starter.data_health --data-root data/synthetic
 python -m starter.projection --data-root data/synthetic --frame 000000
 python -m starter.projection --data-root data/kitti_mini --frame 000011
 ```
-- [ ] Trong ảnh tạo ra, điểm LiDAR **nằm khớp** lên xe, người, cột và mặt đường. Không có điểm nào nằm trên bầu trời hay bị lộn ngược.
-- [ ] Test bằng tay với calib của `data/synthetic` frame `000000`: điểm LiDAR `(10, 0, 0)` phải cho `z_cam ≈ 9.73` (số dương, nằm trước camera) và pixel `(u, v) ≈ (614, 175)`, tức gần giữa ảnh rộng 1242 pixel.
-- [ ] Code không bị lỗi khi dữ liệu có điểm NaN.
-- [ ] Đã commit `CP2: baseline demo running`.
+- [x] Trong ảnh tạo ra, điểm LiDAR **nằm khớp** lên xe, người, cột và mặt đường. Không có điểm nào nằm trên bầu trời hay bị lộn ngược.
+- [x] Test bằng tay với calib của `data/synthetic` frame `000000`: điểm LiDAR `(10, 0, 0)` phải cho `z_cam ≈ 9.73` (số dương, nằm trước camera) và pixel `(u, v) ≈ (614, 175)`, tức gần giữa ảnh rộng 1242 pixel.
+- [x] Code không bị lỗi khi dữ liệu có điểm NaN.
+- [x] Đã commit `CP2: baseline demo running`.
 
 ---
 
@@ -118,9 +118,9 @@ python -m starter.projection --data-root data/kitti_mini --frame 000011
   - Chạy lặp lại ít nhất 20 lần, rồi báo trung vị (p50) và phân vị 95 (p95). Không báo con số của một lần đo duy nhất.
 
 **Tự kiểm tra**
-- [ ] Chạy lại script lần thứ hai cho ra **đúng cùng số liệu**.
-- [ ] Nhìn bảng, bạn nói được xu hướng: metric tăng hay giảm theo mức thay đổi, và có điểm nào metric đột ngột xấu đi không.
-- [ ] Đã commit `CP3: benchmark results`.
+- [x] Chạy lại script lần thứ hai cho ra **đúng cùng số liệu**.
+- [x] Nhìn bảng, bạn nói được xu hướng: metric tăng hay giảm theo mức thay đổi, và có điểm nào metric đột ngột xấu đi không.
+- [x] Đã commit `CP3: benchmark results`.
 
 ---
 
@@ -146,9 +146,9 @@ python -m starter.projection --data-root data/kitti_mini --frame 000011
 - Tìm ra failure case **không bị trừ điểm**. Ngược lại, phân tích failure tốt chiếm 25/100 điểm.
 
 **Tự kiểm tra**
-- [ ] Một bạn khác trong lớp nhìn ảnh failure có hiểu ngay "sai ở đâu" mà không cần bạn giải thích không?
-- [ ] Bạn có đề xuất được cách phát hiện, hoặc cách khắc phục, lỗi này khi chạy trên xe hoặc robot thật không?
-- [ ] Đã commit `CP4: failure analysis`.
+- [ ] Một bạn khác trong lớp nhìn ảnh failure có hiểu ngay "sai ở đâu" mà không cần bạn giải thích không? *(Bạn tự nhờ một bạn cùng lớp xem 3 ảnh `fail_0*.png`.)*
+- [x] Bạn có đề xuất được cách phát hiện, hoặc cách khắc phục, lỗi này khi chạy trên xe hoặc robot thật không?
+- [x] Đã commit `CP4: failure analysis`.
 
 ---
 
@@ -165,8 +165,8 @@ python -m starter.projection --data-root data/kitti_mini --frame 000011
 ```bash
 python tools/check_submission.py
 ```
-- [ ] Mọi dòng đều là `[PASS]`, dòng cuối là `KẾT QUẢ: SẴN SÀNG NỘP`.
-- [ ] `git status` báo không còn thay đổi chưa commit, và `git log origin/main -1` hiện đúng commit cuối cùng của bạn.
+- [x] Mọi dòng đều là `[PASS]`, dòng cuối là `KẾT QUẢ: SẴN SÀNG NỘP`.
+- [x] `git status` báo không còn thay đổi chưa commit, và `git log origin/main -1` hiện đúng commit cuối cùng của bạn.
 
 ---
 
@@ -186,5 +186,5 @@ python tools/check_submission.py
 - Muốn đưa phương pháp này vào xe hoặc robot thật, bạn sẽ ghi log thêm chỉ số gì?
 
 **Tự kiểm tra**
-- [ ] Đã tập nói thử một lần, gọn trong 3 phút.
-- [ ] Giải thích được mọi con số trong bảng kết quả của mình.
+- [ ] Đã tập nói thử một lần, gọn trong 3 phút. *(Bạn tự làm.)*
+- [ ] Giải thích được mọi con số trong bảng kết quả của mình. *(Bạn tự làm: đọc mục 2–3 của REPORT.)*

@@ -67,6 +67,6 @@ Kết quả đúng: mọi dòng đều là `[PASS]`, dòng cuối là `KẾT QU�
 
 Ngoài script, bạn tự kiểm tra thêm 3 điểm sau:
 
-- [ ] Clone lại repo vào một thư mục mới, chạy các lệnh ở mục 5 của REPORT, và ra đúng kết quả như trong báo cáo.
-- [ ] Mở `report/REPORT.md` bằng trình xem Markdown (ví dụ trên GitHub), và mọi ảnh đều hiển thị được.
-- [ ] Lệnh `git log origin/main -1` hiện đúng commit hash mà bạn đã nộp trên LMS.
+- [x] Clone lại repo vào một thư mục mới, chạy các lệnh ở mục 5 của REPORT, và ra đúng kết quả như trong báo cáo.
+- [x] Mở `report/REPORT.md` bằng trình xem Markdown (ví dụ trên GitHub), và mọi ảnh đều hiển thị được.
+- [ ] Lệnh `git log origin/main -1` hiện đúng commit hash mà bạn đã nộp trên LMS. *(Đánh dấu sau khi nộp LMS.)*
