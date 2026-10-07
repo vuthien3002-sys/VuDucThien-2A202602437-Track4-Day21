@@ -41,7 +41,17 @@ Use-case cụ thể (ADAS / robot / drone), trade-off và bước tiếp theo.
 Các lệnh tái tạo lại toàn bộ kết quả từ repo sạch.
 
 ```bash
-[ĐIỀN]
+# 0. Môi trường (Windows máy GBK cần bật UTF-8 mode, nếu không pip đọc requirements.txt bị lỗi)
+python -m venv .venv && .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
+set PYTHONUTF8=1                                         # PowerShell: $env:PYTHONUTF8=1 ; bash: export PYTHONUTF8=1
+pip install -r requirements.txt
+
+# 1. CP2: tự kiểm 2 hàm TODO + overlay (in đúng inside_image = 3910 / 19946 / 3120)
+python -m src.test_projection
+python -m starter.projection --data-root data/synthetic --frame 000000
+python -m starter.projection --data-root data/kitti_mini --frame 000011
+python -m starter.projection --data-root data/nuscenes_mini_subset --frame scene-0103_010
+python -m src.demo_overlays          # -> results/figures/demo_overlay_3_distances.png (000019 gần, 000011, 000004 xa)
 ```
 
 ## 6. Khai báo sử dụng AI
