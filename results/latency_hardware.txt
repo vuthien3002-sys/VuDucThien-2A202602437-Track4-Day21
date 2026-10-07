@@ -1,0 +1,2 @@
+CPU: Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz (12 logical cores), RAM: 15.8 GB, GPU: không dùng
+OS: Windows-10-10.0.18362-SP0, Python 3.11.9, numpy 2.4.6

@@ -1,0 +1,5 @@
+dataset,frame,n_points,stage,runs,p50,p95
+kitti_mini,000011,108004,projection,50,12.32,18.57
+kitti_mini,000011,108004,qa_check,50,54.44,61.69
+nuscenes_mini_subset,scene-0103_010,34720,projection,50,2.56,3.0
+nuscenes_mini_subset,scene-0103_010,34720,qa_check,50,21.39,24.65
