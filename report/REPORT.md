@@ -54,7 +54,7 @@
 | 95 % | 1/20 (frame 000048, mức sàn 92.0 %) | 10/20 | 14/20 | 20/20 | 20/20 |
 | 90 % | 0/20 | 6/20 | 10/20 | 16/20 | 20/20 |
 
-6 frame **không phát hiện được yaw 1°** ở ngưỡng 95 % (000008, 000010, 000019, 000021, 000031, 000032) đều là frame chỉ có xe gần/rộng (đông xe, vật < 6 m, van/truck): tỉ lệ gộp theo điểm bị xe gần chi phối. Mức sàn ở 0° chưa phải 100 % vì 2D box do người vẽ không khớp tuyệt đối với 3D box (người đi bộ 95.7 %).
+6 frame **không phát hiện được yaw 1°** ở ngưỡng 95 % (000008, 000010, 000019, 000021, 000031, 000032) là các frame mà điểm bị **xe gần** chi phối: trung vị 82 % điểm vật thể thuộc xe < 15 m và 0 % thuộc người/xe đạp (các frame phát hiện được: 0 % và 14 %). Tỉ lệ gộp theo điểm vì thế "mù" với drift nhỏ khi frame thiếu vật hẹp/xa. Mức sàn ở 0° chưa phải 100 % vì 2D box do người vẽ không khớp tuyệt đối với 3D box (người đi bộ 95.7 %).
 
 **[B5] So sánh KITTI và nuScenes** (cùng code, cùng metric, 80 keyframe nuScenes, 1146 vật) — `results/calib_sweep_summary_nusc.csv`, [kitti_vs_nuscenes.png](../results/figures/kitti_vs_nuscenes.png):
 
@@ -83,11 +83,35 @@ Vì sao giống/khác: (1) yaw 1° gần như **trùng nhau** dù nuScenes trư�
 
 ## 3. Failure case
 
-Nêu khi nào hệ thống hoặc phương pháp fail, vì sao fail, và liên hệ tới lớp nào trong 6 lớp debug: I/O, Geometry, Time, Preprocess, Model, Metric.
+### Fail 01 — Geometry: người đi bộ ở xa mất gần hết điểm khi lệch yaw 1°
 
-![failure](../results/figures/fail_[ĐIỀN].png)
+![fail 01](../results/figures/fail_01_yaw_1deg_far_pedestrian.png)
 
-[ĐIỀN]
+- **Trường hợp:** KITTI frame `000011`, người đi bộ thứ 3 (dòng 4 của `label_2/000011.txt`, `obj_id = 3` trong CSV), cách 34.2 m, 2D box chỉ rộng 15.3 px, có 40 điểm LiDAR.
+- **Quan sát:** tỉ lệ điểm của người này nằm trong box: 40/40 = 100 % (0°) → 21/40 = 52.5 % (0.5°) → 3/40 = 7.5 % (1°) → 0 % (2°). Cả frame 000011 tụt 99.5 → 77.4 % ở 1°, trong khi frame xe 000008 vẫn 98.6 %.
+- **Nguyên nhân:** lệch yaw θ đẩy mọi điểm sang ngang `f·tanθ` = 721.5·tan1° = 12.6 px **ở mọi khoảng cách**, trong khi người 0.6 m ở 34 m chỉ rộng ~15 px → điểm trượt 82 % bề rộng box. Tổng quát: tỉ lệ trượt = `z·tanθ/W`, lớn khi vật **xa** và **hẹp**.
+- **Lớp debug:** Geometry — extrinsic `Tr_velo_to_cam` sai (giá đỡ LiDAR bị xoay). Code chiếu không sai: self-test `(10,0,0) → (614,175)` vẫn pass.
+- **Phát hiện khi chạy thật:** theo dõi `hit_ratio` trên vật **hẹp, xa** (người đi bộ, cột > 20 m) chứ không chỉ gộp toàn frame: 6/20 frame KITTI bị xe gần chi phối (82 % điểm) **không phát hiện** được yaw 1° với ngưỡng 95 %. Ngưỡng 95 % gộp theo frame: báo nhầm 1/20 frame ở 0°, bắt 14/20 frame ở 1°, 20/20 ở 2°.
+
+### Fail 02 — Time: bỏ bù chuyển động 35.6 ms, và metric `hit_ratio` không nhìn thấy lỗi này
+
+![fail 02](../results/figures/fail_02_nusc_no_ego_motion.png)
+
+- **Trường hợp:** nuScenes, chiếu LiDAR lên CAM_FRONT với `--ignore-ego-motion`: `scene-0103_010` (xe đi thẳng 8.6 m/s) và `scene-1094_014` (xe đang rẽ). Bảng cho cả 80 keyframe: `results/time_sync_nusc.csv`.
+- **Quan sát:** `scene-0103_010`: inside_image 3120 → 2911, điểm bị dời trung vị 10.0 px, **giảm theo độ sâu**: 25.0 px (< 10 m), 11.4 px (10–20 m), 5.8 px (20–40 m), 2.3 px (> 40 m). `scene-1094_014`: dời 21.3 px gần như **đều mọi độ sâu** (19.1 px ở < 10 m, 21.1 px ở > 40 m) dù xe chỉ chạy 2.9 m/s. Thế nhưng `hit_ratio` vẫn **100 %** ở cả hai, và trên 80 frame chỉ đổi 99.93 → 99.92 %.
+- **Nguyên nhân:** camera chụp **trước** LiDAR 34.2–39.5 ms ở mọi frame. Xe đi thẳng thì lỗi là một phép **dịch** 0.31 m → dời `f·d/z` (vật gần dời nhiều). Xe rẽ 0.93° trong 35.6 ms thì lỗi là một phép **xoay** → dời 1266·tan0.93° ≈ 20.5 px ở mọi khoảng cách, giống hệt lỗi yaw calibration. `hit_ratio` không thấy vì 2D box nuScenes được **tính từ 3D box qua cùng ego pose** với điểm (`nuscenes_io._labels`), nên box dời cùng điểm.
+- **Lớp debug:** Time (không đồng bộ / không deskew), kèm Metric (box tham chiếu không độc lập với chuỗi biến đổi đang kiểm tra).
+- **Phát hiện khi chạy thật:** ghi log `dt = t_camera − t_lidar`, tốc độ và tốc độ quay của xe mỗi frame; cảnh báo khi độ dời dự đoán `|v·dt|` > 0.1 m hoặc `|ω·dt|` > 0.2°. Kiểm tra Time phải dùng tham chiếu **độc lập từ ảnh** (2D detector của camera, cạnh Canny), không dùng box suy ra từ 3D label.
+
+### Fail 03 — Metric: script mẫu báo 100 % "khớp" cho xe sát mép ảnh dù 90 % điểm đã bị đẩy ra ngoài
+
+![fail 03](../results/figures/fail_03_metric_template_edge_car.png)
+
+- **Trường hợp:** KITTI `000011`, xe thứ 4 cách 6.6 m, `truncated = 0.98` (bị mép trái ảnh cắt), lệch yaw 3°.
+- **Quan sát:** `hit_ratio` của script mẫu = 22/22 = **100 %** (còn cao hơn mức 98.6 % ở 0°), trong khi thực tế chỉ 22/210 = **10.5 %** điểm còn trong box. Gộp 20 frame ở yaw 3°: script mẫu 79.8 % so với 76.0 % khi giữ mẫu số cố định (mẫu số tụt 40 105 → 38 917 điểm). Tương tự `000049` xe 17: 100 % so với 20.4 %. Metric "số điểm trong ảnh" còn tệ hơn: 19 946 → 19 948 khi yaw 0° → 3°.
+- **Nguyên nhân:** script mẫu tính `sel = points_in_box(cam_true) & mask` với `mask` lấy từ phép chiếu **đã lệch** → điểm bị đẩy ra ngoài ảnh biến mất khỏi mẫu số thay vì bị tính là trượt; vật sát mép ảnh vì thế trông "khớp hoàn hảo".
+- **Lớp debug:** Metric.
+- **Khắc phục / phát hiện:** dùng mẫu số cố định theo calib gốc (`hit_ratio_fixed` trong `src/exp_calib_sweep.py`), luôn log kèm `object_points` để thấy mẫu số co lại, và báo riêng các vật `truncated > 0.5`.
 
 ## 4. Khuyến nghị nếu triển khai thật
 
@@ -119,6 +143,12 @@ python -m src.exp_calib_sweep --data-root data/nuscenes_mini_subset --tag nusc  
 python -m src.plot_results           # -> yaw_sweep.png, claim_rot_vs_trans.png, kitti_vs_nuscenes.png, drift_detection.png
 python -m src.exp_degradation        # [B2] -> degradation_summary.csv, degradation_sweep.png (seed = 0)
 python -m src.bench_latency          # [B3] -> latency_qa.csv, latency_summary.csv (số ms thay đổi nhẹ theo máy)
+
+# 3. CP4: failure case
+python -m src.make_failures          # -> fail_01/02/03_*.png + time_sync_nusc.csv (80 keyframe nuScenes)
+python -m src.exp_calib_sweep --data-root data/nuscenes_mini_subset --axes yaw --ignore-ego-motion --tag nusc_noego
+python -m starter.projection --data-root data/nuscenes_mini_subset --frame scene-0103_010 --ignore-ego-motion   # 3120 -> 2911
+python -m starter.projection --data-root data/kitti_mini --frame 000011 --yaw-deg 2                             # nhìn bằng mắt
 ```
 
 ## 6. Khai báo sử dụng AI
